@@ -34,16 +34,17 @@ function App() {
   const [error, setError] = useState(null);
 
   // Private API Key Accuweather 
-  const API_KEY = "EFkoR8G9n7AXbGDRRNtOZrvQIOYDZk0j"
+  const API_KEY = import.meta.env.VITE_API_ACCU_KEY
+  const API_URL = import.meta.env.VITE_API_ACCU_URL
 
   // API Url for Function
-  const API_LOC_BY_IP = `http://dataservice.accuweather.com/locations/v1/cities/ipaddress?apikey=${API_KEY}&q=${ip}`
-  const API_LOC_BY_LAT_LONG = `http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${location.lat},${location.lon}`
-  const API_IW_BY_LOC_KEY = `http://dataservice.accuweather.com/currentconditions/v1/${initialLocationKey}?apikey=${API_KEY}`
+  const API_LOC_BY_IP = `${API_URL}/locations/v1/cities/ipaddress?apikey=${API_KEY}&q=${ip}`
+  const API_LOC_BY_LAT_LONG = `${API_URL}/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${location.lat},${location.lon}`
+  const API_IW_BY_LOC_KEY = `${API_URL}/currentconditions/v1/${initialLocationKey}?apikey=${API_KEY}`
 
-  const API_W_BY_LOC_KEY = (locationKey) => `http://dataservice.accuweather.com/currentconditions/v1/${locationKey}?apikey=${API_KEY}`
-  const API_LOC_BY_CITY = `http://dataservice.accuweather.com/locations/v1/search?apikey=${API_KEY}&q=${citySearched}`
-  const API_AUTOCOMPLETE = `http://dataservice.accuweather.com/locations/v1/cities/autocomplete?apikey=${API_KEY}&q=${keyword}`
+  const API_W_BY_LOC_KEY = (locationKey) => `${API_URL}/currentconditions/v1/${locationKey}?apikey=${API_KEY}`
+  const API_LOC_BY_CITY = `${API_URL}/locations/v1/search?apikey=${API_KEY}&q=${citySearched}`
+  const API_AUTOCOMPLETE = `${API_URL}/locations/v1/cities/autocomplete?apikey=${API_KEY}&q=${keyword}`
 
   useEffect(() => {
     // Get Time
