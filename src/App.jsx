@@ -3,6 +3,8 @@ import './App.css'
 import axios from 'axios'
 import { getWeatherIcon } from './helper';
 import CitiesCard from './components/CitiesCard';
+import Error from './components/Error';
+import Loading from './components/Loading';
 
 function App() {
 
@@ -22,7 +24,8 @@ function App() {
   const [keyword, setKeyword] = useState('')
   const [autoCompleteResults, setAutoCompleteResults] = useState([])
   const [citySearched, setCitySearched] = useState("")
-  const [data, setData] = useState([])
+  const [citySearchedData, setCitySearchedData] = useState([])
+  const [isSearchEntered, setIsSearchEntered] = useState(false)
 
   // Weather by Searching
   const [locationKey, setLocationKey] = useState("")
@@ -40,12 +43,11 @@ function App() {
   // API Url for Function
   const API_LOC_BY_IP = `${API_URL}/locations/v1/cities/ipaddress?apikey=${API_KEY}&q=${ip}`
   const API_LOC_BY_LAT_LONG = `${API_URL}/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${location.lat},${location.lon}`
-  const API_IW_BY_LOC_KEY = `${API_URL}/currentconditions/v1/${initialLocationKey}?apikey=${API_KEY}`
-
   const API_W_BY_LOC_KEY = (locationKey) => `${API_URL}/currentconditions/v1/${locationKey}?apikey=${API_KEY}`
   const API_LOC_BY_CITY = `${API_URL}/locations/v1/search?apikey=${API_KEY}&q=${citySearched}`
   const API_AUTOCOMPLETE = `${API_URL}/locations/v1/cities/autocomplete?apikey=${API_KEY}&q=${keyword}`
 
+  // INITIAL WEATHER
   useEffect(() => {
     // Get Time
     const interval = setInterval(() => {
@@ -64,19 +66,26 @@ function App() {
     // 1. Get Lat/Long by Navigator Geolocation
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition((position) => {
+        setIsLoading(true)
         setLocation({
           lat: position.coords.latitude,
           lon: position.coords.longitude
         })
+        setIsLoading(false)
       },
-      (err) => {
+      async (err) => {
+        setError("User denied geolocation access!");
+
         // 2. Get IP Adress
-        fetch("https://api.ipify.org?format=json")
-        .then(response => response.json())
-        .then(data => setIp(data.ip))
-        .catch(error => console.error("Error fetching IP:", error));
-        console.log(err.message)
-        setError("User denied geolocation access!")
+        setIsLoading(true)
+        try {
+          const response = await axios.get("https://api.ipify.org?format=json");
+          setIp(response.data.ip);
+        } catch (err) {
+          setError("Error fetching IP");
+        } finally {
+          setIsLoading(false)
+        }
       })
     } else {
       setError("Geolocation is not supported by this browser!");
@@ -88,37 +97,46 @@ function App() {
 
   useEffect(() => {
     const fetchWeatherByLatLong = async () => {
+      setIsLoading(true)
       try {
         const response = await axios.get(API_LOC_BY_LAT_LONG);
-        console.log("success fetch lat long");
+        // console.log("success fetch lat long");
         setInitialLocationKey(response.data.Key); 
         setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
       } catch (error) {
-        console.error("Error fetching location by lat/long:", error);
+        // setError("Error fetching location by lat/long: " + error)
+      } finally {
+        setIsLoading(false)
       }
     };
   
     const fetchWeatherByIp = async () => {
+      setIsLoading(true)
       try {
         const response = await axios.get(API_LOC_BY_IP);
-        console.log("success fetch ip");
+        // console.log("success fetch ip");
         setInitialLocationKey(response.data.Key); 
         setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
       } catch (error) {
-        console.error("Error fetching location by IP:", error);
+        // setError("Error fetching location by IP: " + error)
+      } finally {
+        setIsLoading(false)
       }
     };
   
     const fetchWeatherData = async () => {
       if (initialLocationKey) {
+        setIsLoading(true)
         try {
           const response = await axios.get(API_W_BY_LOC_KEY(initialLocationKey));
-          console.log("success fetch weather");
-          console.log(response.data[0]);
+          // console.log("success fetch weather");
+          // console.log(response.data[0]);
           setInitialWeather(response.data[0]);
           setInitialWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
         } catch (error) {
-          setError(`Error fetching weather data: ${error}`);
+          // setError("Error fetching initial weather data: " + error)
+        } finally {
+          setIsLoading(false)
         }
       }
     };
@@ -137,70 +155,72 @@ function App() {
 
   }, [initialLocationKey]); 
 
+  // INPUT HANDLE
   // When Input Triggered
   const onInputChange = (target) => {
-    console.log(target)
-    setKeyword(target);
-    console.log("keyword updated " + keyword)
+    // console.log(target)
+    // console.log("keyword updated " + keyword)
+    setKeyword(target)
+    setIsSearchEntered(false)
     setCitySearched(target);
     if(target.length >= 3) {
       autocomplete();
-    };
+    }
   }
 
   // Autocomplete City Search
   const autocomplete = async () => {
-    console.log("hehe")
-    setIsLoading(true)
+    // setIsLoading(true)
     try {
       const response = await axios.get(API_AUTOCOMPLETE)
       const limitedResults = response.data.slice(0, 5);
       setAutoCompleteResults(limitedResults)
     } 
     catch(error) {
-      console.error("Error fetching autocomplete:", error);
+      setError("Error fetching autocomplete: " + error)
     }
     finally {
-      // setCitySearched('')
-      setIsLoading(false) 
+      // setIsLoading(false) 
     }
   }
 
-  // Searching by City
-  const search = async (e) => {
+  // Searching Location by City
+  const searchLocation = async (e) => {
     if(e.key === "Enter"){
+      setIsSearchEntered(true)
       setIsLoading(true)
       try {
         const response = await axios.get(API_LOC_BY_CITY)
-        setData(response.data)
+        const limitedResults = response.data.slice(0, 6);
+        setCitySearchedData(limitedResults)
       } 
       catch(error) {
-        console.error("Error fetching data:", error);
+        setError("Error fetching cities data: " + error)
       }
       finally {
-        // setCitySearched('')
         setIsLoading(false)
-        
       }
     }
   }
 
-  // Handle Cities Card Clicked
-  const handleCardClicked = async (cityCardKey) => {
-    console.log("ini card yang dipilih")
-    console.log(cityCardKey)
-    const url = API_W_BY_LOC_KEY(cityCardKey);
-  console.log("URL yang dibentuk:", url); 
+  // Handle when Cities Card Clicked
+  const handleCardClicked = async (cityCardLocKey) => {
+    setIsLoading(true)
     try {
-      const response = await axios.get(API_W_BY_LOC_KEY(cityCardKey));
+      const response = await axios.get(API_W_BY_LOC_KEY(cityCardLocKey));
       console.log("success fetch weather");
       console.log(response.data[0]);
       setWeather(response.data[0]);
       setWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
     } catch (error) {
-      setError(`Error fetching weather data: ${error}`);
+      setError("Error fetching weather data: " + error)
+    } finally {
+      setIsLoading(false)
     }
   }
+
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error} />;
 
   return (
     <>
@@ -214,7 +234,7 @@ function App() {
             <p className='text-xs font-extralight'>{time.toLocaleTimeString()}</p>
             <p className='text-lg font-medium'>{city || "No Location :("}</p>
             <p className='text-[0.55rem]/[0.6rem] font-extralight'>{location.lat && location.lon ? `${location.lat}, ${location.lon}` : ''}</p>
-            <div className='mt-2 flex'>
+            <div className='mt-2 flex text-right'>
               <div className='mr-2 text-xs font-medium'>
                 <p>{Math.round(initialWeather?.Temperature?.Metric?.Value)}°C</p>
                 <p>{Math.round(initialWeather?.Temperature?.Imperial?.Value)}°F</p>
@@ -233,14 +253,14 @@ function App() {
           <div className='my-5 w-3/4 mx-auto text-sm'>
             <input 
               type="text" 
-              className={`w-full py-3 px-6 bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 opacity-70 focus:outline-emerald-400 placeholder:text-gray-100 shadow-inner ${autoCompleteResults.length > 0 ? 'rounded-t-xl' : 'rounded-xl'}`} 
+              className={`w-full py-3 px-6 bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 opacity-70 focus:outline-emerald-400 placeholder:text-gray-100 shadow-inner ${autoCompleteResults.length > 0 && !isSearchEntered ? 'rounded-t-xl' : 'rounded-xl'}`} 
               placeholder='Search City ...' 
               value={citySearched} 
               onChange={(e) => {onInputChange(e.target.value)}}
-              onKeyDownCapture={search}
+              onKeyDownCapture={searchLocation}
             />
 
-            {autoCompleteResults.length > 0 && (
+            {autoCompleteResults.length > 0 && !isSearchEntered && (
               <ul className="mt-0 w-full bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 rounded-b-xl opacity-70 shadow-inner overflow-auto">
                 {autoCompleteResults.map((result, index) => (
                 <li
@@ -248,7 +268,7 @@ function App() {
                   className="px-6 py-2 hover:bg-gradient-to-r from-neutral-700 to-transparent cursor-pointer text-left"
                   onClick={() => {
                     setCitySearched(result.LocalizedName); 
-                    search(result.LocalizedName)
+                    searchLocation(result.LocalizedName)
                   }}
                 >
                   {result.LocalizedName}, {result.AdministrativeArea.LocalizedName}, {result.Country.LocalizedName}
@@ -262,19 +282,13 @@ function App() {
         
       </div>
 
-      {isLoading && <p>Loading...</p>}
+      {/* {isLoading && <p>Loading...</p>} */}
       <div className='grid grid-cols-2 gap-3'>
-        {data.map((item, index) => (
+        {citySearchedData.map((item, index) => (
           <CitiesCard key={index} data={item} index={index+1} cardClicked={handleCardClicked}/>
         ))}
       </div>
       
-      {/* {initialWeather && (
-        <div>
-          
-          <p>Temperature: {initialWeather.Temperature.Metric.Value} °C</p>
-        </div>
-      )} */}
       {error && <p>{error}</p>}
     </>
   )
