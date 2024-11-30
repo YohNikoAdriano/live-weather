@@ -74,7 +74,7 @@ function App() {
         setIsLoading(false)
       },
       async (err) => {
-        setError("User denied geolocation access!");
+        // setError("User denied geolocation access!");
 
         // 2. Get IP Adress
         setIsLoading(true)
@@ -234,7 +234,7 @@ function App() {
             <p className='text-xs font-extralight'>{time.toLocaleTimeString()}</p>
             <p className='text-lg font-medium'>{city || "No Location :("}</p>
             <p className='text-[0.55rem]/[0.6rem] font-extralight'>{location.lat && location.lon ? `${location.lat}, ${location.lon}` : ''}</p>
-            <div className='mt-2 flex text-right'>
+            <div className='mt-2 flex justify-end'>
               <div className='mr-2 text-xs font-medium'>
                 <p>{Math.round(initialWeather?.Temperature?.Metric?.Value)}°C</p>
                 <p>{Math.round(initialWeather?.Temperature?.Imperial?.Value)}°F</p>
