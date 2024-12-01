@@ -1,5 +1,6 @@
 // helper.js
-export const getWeatherIcon = (iconNumber) => {
+export const getWeatherIcon = (iconInput) => {
+    // Mapping untuk angka
     const iconMapping = {
       1: 'wi-day-sunny',           // Sunny
       2: 'wi-day-sunny-overcast',  // Mostly Sunny
@@ -43,7 +44,64 @@ export const getWeatherIcon = (iconNumber) => {
       44: 'wi-cloudy-windy',       // Mostly Cloudy w/ Snow
     };
   
-    // Return icon class based on WeatherIcon number
-    return iconMapping[iconNumber] || 'wi-na'; // 'wi-na' is a default for unknown icons
+    // Mapping untuk teks
+    const textMapping = {
+      "sunny": "wi-day-sunny",
+      "mostly sunny": "wi-day-sunny-overcast",
+      "partly sunny": "wi-day-cloudy",
+      "intermittent clouds": "wi-cloud",
+      "hazy sunshine": "wi-day-haze",
+      "mostly cloudy": "wi-cloudy",
+      "cloudy": "wi-cloudy",
+      "dreary": "wi-cloudy",
+      "fog": "wi-fog",
+      "showers": "wi-rain",
+      "mostly cloudy w/ showers": "wi-cloudy-windy",
+      "partly sunny w/ showers": "wi-day-showers",
+      "t-storms": "wi-thunderstorm",
+      "mostly cloudy w/ t-storms": "wi-thunderstorm",
+      "partly sunny w/ t-storms": "wi-day-thunderstorm",
+      "rain": "wi-rain",
+      "flurries": "wi-snow",
+      "mostly cloudy w/ flurries": "wi-cloudy-windy",
+      "partly sunny w/ flurries": "wi-day-snow",
+      "snow": "wi-snow",
+      "mostly cloudy w/ snow": "wi-cloudy-windy",
+      "ice": "wi-rain-mix",
+      "sleet": "wi-sleet",
+      "freezing rain": "wi-rain-mix",
+      "rain and snow": "wi-rain",
+      "hot": "wi-hot",
+      "cold": "wi-cold",
+      "windy": "wi-windy",
+      "clear": "wi-night-clear",
+      "mostly clear": "wi-night-partly-cloudy",
+      "partly cloudy": "wi-night-cloudy",
+      "hazy moonlight": "wi-night-haze",
+      "partly cloudy w/ showers": "wi-night-showers",
+      "partly cloudy w/ t-storms": "wi-night-thunderstorm"
+    };
+  
+    // Cek apakah input adalah angka atau teks
+    if (typeof iconInput === "number") {
+      return iconMapping[iconInput] || "wi-na"; // Fallback jika tidak ditemukan
+    } else if (typeof iconInput === "string") {
+      iconInput.toLowerCase()
+      return textMapping[iconInput] || "wi-na"; // Fallback jika tidak ditemukan
+    }
+  
+    // Fallback jika input tidak valid
+    return "wi-na";
   };
+  
+
+  export const renameIconPhrase = (iconPhrase) => {
+    if (!iconPhrase.includes("w/")) return iconPhrase;
+
+    return iconPhrase
+        .replace(/w\/ showers/i, "with Showers")
+        .replace(/w\/ t-Storms/i, "with Thunderstorms")
+        .replace(/w\/ flurries/i, "with Flurries")
+        .replace(/w\/ snow/i, "with Snow"); 
+  }
   

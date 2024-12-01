@@ -3,6 +3,8 @@ import './App.css'
 import axios from 'axios'
 import { getWeatherIcon } from './helper';
 import CitiesCard from './components/CitiesCard';
+import Weather from './components/Weather';
+// import ForecastsCard from './components/ForecastsCard'
 import Error from './components/Error';
 import Loading from './components/Loading';
 
@@ -17,8 +19,8 @@ function App() {
   const [city, setCity] = useState("")
 
   // Initial Weather
-  const [initialWeather, setInitialWeather] = useState({})
-  const [initialWeatherIcon, setInitialWeatherIcon] = useState('');
+  const [initialWeather, setInitialWeather] = useState([])
+  const [initialWeatherIcon, setInitialWeatherIcon] = useState("");
 
   // Autocomplete and City Data by Searching
   const [keyword, setKeyword] = useState('')
@@ -26,12 +28,13 @@ function App() {
   const [citySearched, setCitySearched] = useState("")
   const [citySearchedData, setCitySearchedData] = useState([])
   const [isSearchEntered, setIsSearchEntered] = useState(false)
+  const [isResultsClicked, setIsResultsClicked] = useState(false)
 
-  // Weather by Searching
-  const [locationKey, setLocationKey] = useState("")
-  const [weather, setWeather] = useState({})
-  const [weatherIcon, setWeatherIcon] = useState('');
-
+  // Forecasts by Searching
+  const [weather, setWeather] = useState([])
+  const [forecasts, setForecasts] = useState({})
+  const [forecastsLocation, setForecastsLocation] = useState("")
+  
   // Error and Loading
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,6 +49,7 @@ function App() {
   const API_W_BY_LOC_KEY = (locationKey) => `${API_URL}/currentconditions/v1/${locationKey}?apikey=${API_KEY}`
   const API_LOC_BY_CITY = `${API_URL}/locations/v1/search?apikey=${API_KEY}&q=${citySearched}`
   const API_AUTOCOMPLETE = `${API_URL}/locations/v1/cities/autocomplete?apikey=${API_KEY}&q=${keyword}`
+  const API_F_BY_LOC_KEY = (locationKey) => `${API_URL}/forecasts/v1/daily/5day/${locationKey}?apikey=${API_KEY}`
 
   // INITIAL WEATHER
   useEffect(() => {
@@ -203,15 +207,19 @@ function App() {
     }
   }
 
-  // Handle when Cities Card Clicked
-  const handleCardClicked = async (cityCardLocKey) => {
+  // Get 5 days Daily Forecast when Autocomplete or Cities Card Clicked
+  const getForecasts = async (key, loc, country) => {
     setIsLoading(true)
+    setIsResultsClicked(true)
     try {
-      const response = await axios.get(API_W_BY_LOC_KEY(cityCardLocKey));
+      const wResponse = await axios.get(API_W_BY_LOC_KEY(key));
       console.log("success fetch weather");
-      console.log(response.data[0]);
-      setWeather(response.data[0]);
-      setWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
+      setWeather(wResponse.data[0])
+      const fResponse = await axios.get(API_F_BY_LOC_KEY(key));
+      console.log("success fetch forecasts");
+      setForecasts(fResponse.data)
+      setForecastsLocation(`${loc}, ${country}`)
+      // setWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
     } catch (error) {
       setError("Error fetching weather data: " + error)
     } finally {
@@ -225,26 +233,27 @@ function App() {
   return (
     <>
       <div className="w-100 h-100 relative">
-
-        <div className='user-information text-sm flex items-center justify-around p-5 my-10 bg-gradient-to-r from-neutral-700 to-transparent rounded-lg shadow-lg hover:cursor-pointer'>
-          <div className='mr-3 text-6xl font-bold'>
-            <i className={initialWeatherIcon ? `wi ${initialWeatherIcon}` : "wi-na"} style={{ fontSize: 'inherit', color: 'orange'}}></i>
-          </div>
-          <div className='text-end'>
-            <p className='text-xs font-extralight'>{time.toLocaleTimeString()}</p>
-            <p className='text-lg font-medium'>{city || "No Location :("}</p>
-            <p className='text-[0.55rem]/[0.6rem] font-extralight'>{location.lat && location.lon ? `${location.lat}, ${location.lon}` : ''}</p>
-            <div className='mt-2 flex justify-end'>
-              <div className='mr-2 text-xs font-medium'>
-                <p>{Math.round(initialWeather?.Temperature?.Metric?.Value)}°C</p>
-                <p>{Math.round(initialWeather?.Temperature?.Imperial?.Value)}°F</p>
+        <div className='user-information text-sm w-11/12 mx-auto p-6 my-6 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg hover:cursor-pointer'>
+          <div className='flex items-center justify-between'>
+            <div className='w-20 h-20 text-5xl flex items-center justify-center'>
+              <i className={initialWeatherIcon ? `wi ${initialWeatherIcon}` : "wi-na"} style={{ fontSize: 'inherit', lineHeight: '3rem', color: 'orange'}}></i>
+            </div>
+            <div className='text-end'>
+              <p className='text-[.6rem] font-extralight'>{time.toLocaleTimeString()}</p>
+              <p className='text-lg font-medium'>{city || "No Location :("}</p>
+              <p className='text-[0.55rem]/[0.6rem] font-extralight'>{location.lat && location.lon ? `${location.lat}, ${location.lon}` : ''}</p>
+              <div className='mt-2 flex justify-end'>
+                <div className='mr-2 text-xs font-medium'>
+                  <p>{Math.round(initialWeather?.Temperature?.Metric?.Value)}°C</p>
+                  <p>{Math.round(initialWeather?.Temperature?.Imperial?.Value)}°F</p>
+                </div>
+                <span className='text-xl font-extrabold border-l-2 pl-2'>{initialWeather.WeatherText || "No Weather :("}</span>
               </div>
-              <span className='text-xl font-extrabold border-l-2 pl-2'>{initialWeather.WeatherText || "No Weather :("}</span>
             </div>
           </div>
         </div>
 
-        <div className="intro my-5 w-4/5 mx-auto">
+        <div className="intro my-5 w-11/12 mx-auto">
           <h1 className="text-2xl font-extrabold mb-2">
             {greeting}
           </h1>
@@ -253,22 +262,22 @@ function App() {
           <div className='my-5 w-3/4 mx-auto text-sm'>
             <input 
               type="text" 
-              className={`w-full py-3 px-6 bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 opacity-70 focus:outline-emerald-400 placeholder:text-gray-100 shadow-inner ${autoCompleteResults.length > 0 && !isSearchEntered ? 'rounded-t-xl' : 'rounded-xl'}`} 
+              className={`w-full py-3 px-6 bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 opacity-70 focus:outline-emerald-400 placeholder:text-gray-100 shadow-inner ${autoCompleteResults.length > 0 && !isSearchEntered && !isResultsClicked ? 'rounded-t-xl' : 'rounded-xl'}`} 
               placeholder='Search City ...' 
               value={citySearched} 
               onChange={(e) => {onInputChange(e.target.value)}}
               onKeyDownCapture={searchLocation}
             />
 
-            {autoCompleteResults.length > 0 && !isSearchEntered && (
+            {autoCompleteResults.length > 0 && !isSearchEntered && !isResultsClicked && (
               <ul className="mt-0 w-full bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 rounded-b-xl opacity-70 shadow-inner overflow-auto">
                 {autoCompleteResults.map((result, index) => (
                 <li
                   key={index}
                   className="px-6 py-2 hover:bg-gradient-to-r from-neutral-700 to-transparent cursor-pointer text-left"
                   onClick={() => {
-                    setCitySearched(result.LocalizedName); 
-                    searchLocation(result.LocalizedName)
+                    setCitySearched(result.LocalizedName);
+                    getForecasts(result.Key, result.LocalizedName, result.Country.LocalizedName);
                   }}
                 >
                   {result.LocalizedName}, {result.AdministrativeArea.LocalizedName}, {result.Country.LocalizedName}
@@ -282,12 +291,24 @@ function App() {
         
       </div>
 
-      {/* {isLoading && <p>Loading...</p>} */}
-      <div className='grid grid-cols-2 gap-3'>
-        {citySearchedData.map((item, index) => (
-          <CitiesCard key={index} data={item} index={index+1} cardClicked={handleCardClicked}/>
-        ))}
-      </div>
+      {citySearchedData.length > 0 && !isResultsClicked && (
+        <div className='grid grid-cols-2 gap-3'>
+          {citySearchedData.map((item, index) => (
+            <CitiesCard key={index} data={item} index={index+1} cardClicked={getForecasts}/>
+          ))}
+        </div>
+      )}
+
+      {Object.keys(forecasts).length > 0 && isResultsClicked && (
+        <div>
+          <Weather weatherData={weather} forecastsData={forecasts} loc={forecastsLocation}/>
+          {/* <div className='grid grid-cols-2 gap-3'>
+            {Object.keys(forecasts).map((key, item, index) => (
+              <CitiesCard key={key} data={item[key]} index={index+1} cardClicked={() => console.log("Card clicked:", forecasts[key])}/>
+            ))}
+          </div> */}
+        </div>
+      )}
       
       {error && <p>{error}</p>}
     </>
