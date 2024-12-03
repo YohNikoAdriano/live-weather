@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import axios from 'axios'
 import { getWeatherIcon } from './helper';
@@ -38,6 +38,7 @@ function App() {
   // Error and Loading
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const timeoutRef = useRef(null);
 
   // Private API Key Accuweather 
   const API_KEY = import.meta.env.VITE_API_ACCU_KEY
@@ -166,9 +167,16 @@ function App() {
     // console.log("keyword updated " + keyword)
     setKeyword(target)
     setIsSearchEntered(false)
+    setIsResultsClicked(false)
+    setWeather([])
+    setForecasts({})
+    setForecastsLocation("")
     setCitySearched(target);
-    if(target.length >= 3) {
-      autocomplete();
+    if (target.length >= 3) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current); // Clear previous debounce
+      timeoutRef.current = setTimeout(() => {
+        autocomplete(target);
+      }, 500);
     }
   }
 
@@ -191,8 +199,8 @@ function App() {
   // Searching Location by City
   const searchLocation = async (e) => {
     if(e.key === "Enter"){
-      setIsSearchEntered(true)
       setIsLoading(true)
+      setIsSearchEntered(true)
       try {
         const response = await axios.get(API_LOC_BY_CITY)
         const limitedResults = response.data.slice(0, 6);

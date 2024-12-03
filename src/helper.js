@@ -58,7 +58,7 @@ export const getWeatherIcon = (iconInput) => {
       "showers": "wi-rain",
       "mostly cloudy w/ showers": "wi-cloudy-windy",
       "partly sunny w/ showers": "wi-day-showers",
-      "t-storms": "wi-thunderstorm",
+      "thunderstorms": "wi-thunderstorm",
       "mostly cloudy w/ t-storms": "wi-thunderstorm",
       "partly sunny w/ t-storms": "wi-day-thunderstorm",
       "rain": "wi-rain",
