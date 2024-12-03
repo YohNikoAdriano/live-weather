@@ -39,6 +39,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const timeoutRef = useRef(null);
+  const apiCallCount = useRef(
+    parseInt(localStorage.getItem("apiCallCount"), 10) || 0
+  );
 
   // Private API Key Accuweather 
   const API_KEY = import.meta.env.VITE_API_ACCU_KEY
@@ -51,6 +54,11 @@ function App() {
   const API_LOC_BY_CITY = `${API_URL}/locations/v1/search?apikey=${API_KEY}&q=${citySearched}`
   const API_AUTOCOMPLETE = `${API_URL}/locations/v1/cities/autocomplete?apikey=${API_KEY}&q=${keyword}`
   const API_F_BY_LOC_KEY = (locationKey) => `${API_URL}/forecasts/v1/daily/5day/${locationKey}?apikey=${API_KEY}`
+
+  const updateApiCallCount = (newCount) => {
+    apiCallCount.current = newCount;
+    localStorage.setItem("apiCallCount", newCount); // Simpan ke localStorage
+  };
 
   // INITIAL WEATHER
   useEffect(() => {
@@ -101,64 +109,70 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const fetchWeatherByLatLong = async () => {
-      setIsLoading(true)
-      try {
-        const response = await axios.get(API_LOC_BY_LAT_LONG);
-        // console.log("success fetch lat long");
-        setInitialLocationKey(response.data.Key); 
-        setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
-      } catch (error) {
-        // setError("Error fetching location by lat/long: " + error)
-      } finally {
-        setIsLoading(false)
-      }
-    };
-  
-    const fetchWeatherByIp = async () => {
-      setIsLoading(true)
-      try {
-        const response = await axios.get(API_LOC_BY_IP);
-        // console.log("success fetch ip");
-        setInitialLocationKey(response.data.Key); 
-        setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
-      } catch (error) {
-        // setError("Error fetching location by IP: " + error)
-      } finally {
-        setIsLoading(false)
-      }
-    };
-  
-    const fetchWeatherData = async () => {
-      if (initialLocationKey) {
-        setIsLoading(true)
-        try {
-          const response = await axios.get(API_W_BY_LOC_KEY(initialLocationKey));
-          // console.log("success fetch weather");
-          // console.log(response.data[0]);
-          setInitialWeather(response.data[0]);
-          setInitialWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
-        } catch (error) {
-          // setError("Error fetching initial weather data: " + error)
-        } finally {
-          setIsLoading(false)
-        }
-      }
-    };
-  
-    // Use Lat/Long or IP
-    if (location.lat && location.lon) {
-      fetchWeatherByLatLong();
-    } else {
-      fetchWeatherByIp();
-    }
-  
-    // Fetch Initial Weather Data by Initial Location Key
-    if (initialLocationKey) {
+    // API Called check
+    const apiCallDone = sessionStorage.getItem("apiCallDone");
+    console.log(apiCallDone);
+    if (!apiCallDone) {
       fetchWeatherData();
+    } else {
+      console.log("API sudah dipanggil sebelumnya.");
+    }
+  }, []);
+
+  const fetchWeatherByLatLong = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(API_LOC_BY_LAT_LONG);
+      apiCallCount.current += 1;
+      console.log("success fetch lat long " + apiCallCount.current);
+      setInitialLocationKey(response.data.Key);
+      setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
+    } catch (error) {
+      console.error("Error fetching location by lat/long", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchWeatherByIp = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(API_LOC_BY_IP);
+      apiCallCount.current += 1;
+      console.log("success fetch ip " + apiCallCount.current);
+      setInitialLocationKey(response.data.Key);
+      setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
+    } catch (error) {
+      console.error("Error fetching location by IP", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchWeatherData = async () => {
+    if (location.lat && location.lon) {
+      await fetchWeatherByLatLong();
+    } else {
+      await fetchWeatherByIp();
     }
 
-  }, [initialLocationKey]); 
+    if (initialLocationKey) {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(API_W_BY_LOC_KEY(initialLocationKey));
+        apiCallCount.current += 1;
+        console.log("success fetch initial weather " + apiCallCount.current);
+        setInitialWeather(response.data[0]);
+        setInitialWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
+        // Set Call API status
+        sessionStorage.setItem("apiCallDone", "true");
+      } catch (error) {
+        console.error("Error fetching initial weather data", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   // INPUT HANDLE
   // When Input Triggered
@@ -185,6 +199,7 @@ function App() {
     // setIsLoading(true)
     try {
       const response = await axios.get(API_AUTOCOMPLETE)
+      updateApiCallCount(apiCallCount.current + 1)
       const limitedResults = response.data.slice(0, 5);
       setAutoCompleteResults(limitedResults)
     } 
@@ -203,6 +218,7 @@ function App() {
       setIsSearchEntered(true)
       try {
         const response = await axios.get(API_LOC_BY_CITY)
+        updateApiCallCount(apiCallCount.current + 1)
         const limitedResults = response.data.slice(0, 6);
         setCitySearchedData(limitedResults)
       } 
@@ -221,9 +237,11 @@ function App() {
     setIsResultsClicked(true)
     try {
       const wResponse = await axios.get(API_W_BY_LOC_KEY(key));
+      updateApiCallCount(apiCallCount.current + 1)
       console.log("success fetch weather");
       setWeather(wResponse.data[0])
       const fResponse = await axios.get(API_F_BY_LOC_KEY(key));
+      updateApiCallCount(apiCallCount.current + 1)
       console.log("success fetch forecasts");
       setForecasts(fResponse.data)
       setForecastsLocation(`${loc}, ${country}`)
@@ -241,6 +259,7 @@ function App() {
   return (
     <>
       <div className="w-100 h-100 relative">
+        <p>API Calls: {apiCallCount.current}</p>
         <div className='user-information text-sm w-11/12 mx-auto p-6 my-6 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg hover:cursor-pointer'>
           <div className='flex items-center justify-between'>
             <div className='w-20 h-20 text-5xl flex items-center justify-center'>
