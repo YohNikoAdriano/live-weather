@@ -50,7 +50,7 @@ const ForecastsCarousel = memo(({ forecasts }) => {
               <div className="inline-block px-3 py-2 mb-2 bg-gradient-to-r from-sky-800 via-emerald-700 to-emerald-600 rounded-b-lg focus:outline-emerald-400">
                 <p className="text-xs">Day</p>
               </div>
-              <div className='text-5xl font-bold my-3'>
+              <div className='text-6xl font-bold my-3'>
                 <i className={dailyForecasts?.Day?.Icon ? `wi ${getWeatherIcon(dailyForecasts?.Day?.Icon)}` : "wi-na"} style={{ fontSize: 'inherit', color: 'orange'}}></i>
               </div>
               <p className="text-sm font-extrabold mb-1">{renameIconPhrase(dailyForecasts?.Day?.IconPhrase)}</p>
@@ -64,7 +64,7 @@ const ForecastsCarousel = memo(({ forecasts }) => {
               <div className="inline-block px-3 py-2 mb-2 bg-gradient-to-r from-sky-800 via-emerald-700 to-emerald-600 rounded-b-lg focus:outline-emerald-400">
                 <p className="text-xs">Night</p>
               </div>
-              <div className='text-5xl font-bold my-3'>
+              <div className='text-6xl font-bold my-3'>
                 <i className={dailyForecasts?.Night?.Icon ? `wi ${getWeatherIcon(dailyForecasts?.Night?.Icon)}` : "wi-na"} style={{ fontSize: 'inherit', color: 'orange'}}></i>
               </div>
               <p className="text-sm font-extrabold mb-1">{renameIconPhrase(dailyForecasts?.Night?.IconPhrase)}</p>

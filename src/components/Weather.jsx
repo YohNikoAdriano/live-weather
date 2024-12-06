@@ -18,7 +18,7 @@ const Weather = memo(({ weatherData, headline, forecastsData, loc }) => {
         </div>
 
         <div className='flex items-center'>
-          <div className="w-20 h-20 text-5xl flex-none">
+          <div className="w-20 h-20 text-6xl flex-none">
             <div className="flex items-center justify-center h-full w-full">
               <div>
               <i className={weatherData?.WeatherIcon ? `wi ${getWeatherIcon(weatherData?.WeatherIcon)}` : "wi-na"} style={{ fontSize: 'inherit', lineHeight: '3rem', color: 'orange'}}></i>
@@ -37,7 +37,7 @@ const Weather = memo(({ weatherData, headline, forecastsData, loc }) => {
         </div>
 
         <div className='flex items-center'>
-          <div className="w-20 h-20 text-5xl flex-none">
+          <div className="w-20 h-20 text-6xl flex-none">
             <div className="flex items-center justify-center h-full w-full">
               <div>
               <i className={weatherData?.WeatherIcon ? `wi ${getWeatherIcon(headline?.Category)}` : "wi-na"} style={{ fontSize: 'inherit', lineHeight: '3rem', color: 'orange'}}></i>
