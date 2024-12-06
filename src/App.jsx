@@ -4,9 +4,9 @@ import axios from 'axios'
 import { getWeatherIcon } from './helper';
 import CitiesCard from './components/CitiesCard';
 import Weather from './components/Weather';
-// import ForecastsCard from './components/ForecastsCard'
 import Error from './components/Error';
 import Loading from './components/Loading';
+import ForecastsCarousel from './components/ForecastsCarousel';
 
 function App() {
 
@@ -190,7 +190,7 @@ function App() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current); // Clear previous debounce
       timeoutRef.current = setTimeout(() => {
         autocomplete(target);
-      }, 500);
+      }, 300);
     }
   }
 
@@ -328,16 +328,25 @@ function App() {
 
       {Object.keys(forecasts).length > 0 && isResultsClicked && (
         <div>
-          <Weather weatherData={weather} forecastsData={forecasts} loc={forecastsLocation}/>
-          {/* <div className='grid grid-cols-2 gap-3'>
-            {Object.keys(forecasts).map((key, item, index) => (
-              <CitiesCard key={key} data={item[key]} index={index+1} cardClicked={() => console.log("Card clicked:", forecasts[key])}/>
-            ))}
-          </div> */}
+          <Weather weatherData={weather} headline={forecasts?.Headline} forecastsData={forecasts?.DailyForecasts[0]} loc={forecastsLocation}/>
+        
+        <ForecastsCarousel forecasts={forecasts?.DailyForecasts}/>
         </div>
       )}
+
+{/* {Object.keys(forecasts).length > 0 && isResultsClicked && (
+        // <Weather weatherData={weather} headline={forecasts?.Headline} forecastsData={forecasts?.DailyForecasts[0]} loc={forecastsLocation}/>
+        
+        <ForecastsCarousel forecasts={forecasts?.DailyForecasts}/>
+      )} */}
+      
       
       {error && <p>{error}</p>}
+
+
+
+
+
     </>
   )
 }

@@ -58,7 +58,7 @@ export const getWeatherIcon = (iconInput) => {
       "showers": "wi-rain",
       "mostly cloudy w/ showers": "wi-cloudy-windy",
       "partly sunny w/ showers": "wi-day-showers",
-      "thunderstorms": "wi-thunderstorm",
+      "thunderstorm": "wi-thunderstorm",
       "mostly cloudy w/ t-storms": "wi-thunderstorm",
       "partly sunny w/ t-storms": "wi-day-thunderstorm",
       "rain": "wi-rain",
@@ -103,5 +103,11 @@ export const getWeatherIcon = (iconInput) => {
         .replace(/w\/ t-Storms/i, "with Thunderstorms")
         .replace(/w\/ flurries/i, "with Flurries")
         .replace(/w\/ snow/i, "with Snow"); 
+  }
+
+  export const dateFormat = (date) => {
+    const formattedDate = new Date(date);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return formattedDate.toLocaleDateString('id-ID', options);
   }
   
