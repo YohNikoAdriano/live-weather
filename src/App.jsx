@@ -13,8 +13,6 @@ function App() {
   // User Information
   const [time, setTime] = useState(new Date())
   const [greeting, setGreeting] = useState("")
-  const [location, setLocation] = useState({ lat: null, lon: null });
-  const [ip, setIp] = useState("")
   const [initialLocationKey, setInitialLocationKey] = useState("")
   const [city, setCity] = useState("")
 
@@ -42,29 +40,97 @@ function App() {
   const apiCallCount = useRef(
     parseInt(localStorage.getItem("apiCallCount"), 10) || 0
   );
-  // const initialWeatherLocal = useRef(
-  //   JSON.parse(localStorage.getItem("initialWeatherLocal")) || []
-  // );
 
   // Private API Key Accuweather 
   const API_KEY = import.meta.env.VITE_API_ACCU_KEY
   const API_URL = import.meta.env.VITE_API_ACCU_URL
 
   // API Url for Function
-  const API_LOC_BY_IP = `${API_URL}/locations/v1/cities/ipaddress?apikey=${API_KEY}&q=${ip}`
-  const API_LOC_BY_LAT_LONG = `${API_URL}/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${location.lat},${location.lon}`
+  const API_LOC_BY_IP = (ip) => `${API_URL}/locations/v1/cities/ipaddress?apikey=${API_KEY}&q=${ip}`
+  const API_LOC_BY_LAT_LONG = (lat, lon) => `${API_URL}/locations/v1/cities/geoposition/search?apikey=${API_KEY}&q=${lat},${lon}`
   const API_W_BY_LOC_KEY = (locationKey) => `${API_URL}/currentconditions/v1/${locationKey}?apikey=${API_KEY}`
   const API_LOC_BY_CITY = `${API_URL}/locations/v1/search?apikey=${API_KEY}&q=${citySearched}`
   const API_AUTOCOMPLETE = `${API_URL}/locations/v1/cities/autocomplete?apikey=${API_KEY}&q=${keyword}`
   const API_F_BY_LOC_KEY = (locationKey) => `${API_URL}/forecasts/v1/daily/5day/${locationKey}?apikey=${API_KEY}`
 
+  // Count API Calls
   const updateApiCallCount = (newCount) => {
     apiCallCount.current = newCount;
-    localStorage.setItem("apiCallCount", newCount); // Simpan ke localStorage
+    localStorage.setItem('apiCallCount', newCount);
   };
 
   // INITIAL WEATHER
   useEffect(() => {
+    const fetchLocationData = async (lat, lon) => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(API_LOC_BY_LAT_LONG(lat, lon));
+        apiCallCount.current += 1;
+        // console.log("success fetch lat long " + apiCallCount.current);
+        // console.log(response.data);
+        setInitialLocationKey(response.data.Key);
+
+        localStorage.setItem('initialCity', `${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
+        
+        setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
+        
+      } catch (error) {
+        console.error("Error fetching location by lat/long", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const fetchLocationByIP = async () => {
+      setIsLoading(true);
+      try {
+        const ipResponse = await axios.get("https://api.ipify.org?format=json");
+        const locationResponse = await axios.get(API_LOC_BY_IP(ipResponse.data.ip));
+        apiCallCount.current += 1;
+        // console.log("success fetch ip " + apiCallCount.current);
+        // console.log(locationResponse.data);
+        setInitialLocationKey(locationResponse.data.Key);
+        
+        localStorage.setItem('initialCity', `${locationResponse.data.LocalizedName}, ${locationResponse.data.Country.LocalizedName}`);
+        
+        setCity(`${locationResponse.data.LocalizedName}, ${locationResponse.data.Country.LocalizedName}`);
+        
+      } catch (error) {
+        console.error("Error fetching location by IP", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Get Initial Weather Data from Local Storage 
+    const localStorageInitialCity = localStorage.getItem("initialCity")
+    const localStorageInitialWeather = JSON.parse(localStorage.getItem("initialWeatherLocal"))
+
+    if(localStorageInitialWeather !== null && localStorageInitialCity !== ""){
+      setCity(localStorageInitialCity)
+      setInitialWeather(localStorageInitialWeather);
+      setInitialWeatherIcon(getWeatherIcon(localStorageInitialWeather.WeatherIcon));
+    } else{
+    // Get Location
+    // 1. Get Lat/Long by Navigator Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log("Location by Lat Long");
+          fetchLocationData(position.coords.latitude, position.coords.longitude);
+        },
+        // 2. Get IP Adress
+        (error) => {
+          console.log("User denied geolocation access! : " + error);
+          console.log("Location by IP");
+          fetchLocationByIP();
+        }
+      );
+    } else {
+      setError("Geolocation is not supported by this browser!");
+    }  
+    }
+
     // Get Time
     const interval = setInterval(() => {
       setTime(new Date())
@@ -77,75 +143,31 @@ function App() {
           : "Good Evening!"
       );
     }, 1000)
-
-    // Get Location
-    // 1. Get Lat/Long by Navigator Geolocation
-    if(navigator.geolocation){
-      console.log("graaaa")
-      navigator.geolocation.getCurrentPosition((position) => {
-        setIsLoading(true)
-        setLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude
-        })
-        setIsLoading(false)
-      },
-      async (err) => {
-        // setError("User denied geolocation access!");
-
-        // 2. Get IP Adress
-        setIsLoading(true)
-        try {
-          const response = await axios.get("https://api.ipify.org?format=json");
-          setIp(response.data.ip);
-        } catch (err) {
-          setError("Error fetching IP");
-        } finally {
-          setIsLoading(false)
-        }
-      })
-    } else {
-      setError("Geolocation is not supported by this browser!");
-    }
-
     return () => clearInterval(interval)
 
   }, [])
 
   useEffect(() => {
     const apiCallDone = sessionStorage.getItem("apiCallDone");
-    console.log("Fetch awal telah dilakukan");
+    // console.log("API CALL DONE: " + apiCallDone);
     
-    if (!apiCallDone) {
-      console.log("Fetch awal belum dilakukan");
-      
-      // Mengecek apakah lokasi tersedia dan memilih fungsi untuk fetch data
-      if (location.lat && location.lon) {
-        console.log("Lat Long ditemukan")
-        fetchWeatherByLatLong();
-      } else {
-        console.log("Lat Long tidak ditemukan, sehingga menggunakan IP")
-        fetchWeatherByIp();
-      }
-      
-      // Mengecek apakah initialLocationKey tersedia untuk panggilan API awal
-      if (initialLocationKey) {
-        const fetchInitialWeather = async () => { // Memindahkan async function ke dalam blok
+    if (apiCallDone === null || apiCallDone !== "true") {
+
+      if (initialLocationKey !== "") {
+        const fetchInitialWeather = async () => {
           setIsLoading(true);
           try {
             const response = await axios.get(API_W_BY_LOC_KEY(initialLocationKey));
             apiCallCount.current += 1;
-            console.log("success fetch initial weather " + apiCallCount.current);
+            // console.log("success fetch initial weather " + apiCallCount.current);
   
-            // Menyimpan data di localStorage
             localStorage.setItem('initialWeatherLocal', JSON.stringify(response.data[0]));
   
-            // Set data state
             setInitialWeather(response.data[0]);
             setInitialWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
   
-            // Menandakan bahwa API telah dipanggil
             sessionStorage.setItem("apiCallDone", "true");
+
           } catch (error) {
             console.error("Error fetching initial weather data", error);
           } finally {
@@ -153,73 +175,12 @@ function App() {
           }
         };
   
-        fetchInitialWeather(); // Memanggil fungsi async
+        fetchInitialWeather(); 
       }
     } else {
       console.log("API sudah dipanggil sebelumnya.");
     }
-  }, [location, ip, initialLocationKey]); // Menambahkan dependency yang relevan
-  
-
-  const fetchWeatherByLatLong = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(API_LOC_BY_LAT_LONG);
-      apiCallCount.current += 1;
-      console.log("success fetch lat long " + apiCallCount.current);
-      console.log(response.data)
-      setInitialLocationKey(response.data.Key);
-      setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
-    } catch (error) {
-      console.error("Error fetching location by lat/long", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchWeatherByIp = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(API_LOC_BY_IP);
-      apiCallCount.current += 1;
-      console.log("success fetch ip " + apiCallCount.current);
-      console.log(response.data)
-      setInitialLocationKey(response.data.Key);
-      setCity(`${response.data.LocalizedName}, ${response.data.Country.LocalizedName}`);
-    } catch (error) {
-      console.error("Error fetching location by IP", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchWeatherData = async () => {
-    console.log(location.lat)
-    console.log(location.lon)
-    if (location.lat && location.lon) {
-      await fetchWeatherByLatLong();
-    } else {
-      await fetchWeatherByIp();
-    }
-
-    if (initialLocationKey) {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(API_W_BY_LOC_KEY(initialLocationKey));
-        apiCallCount.current += 1;
-        console.log("success fetch initial weather " + apiCallCount.current);
-        localStorage.setItem('initialWeatherLocal', JSON.stringify(response.data[0]));
-        setInitialWeather(response.data[0]);
-        setInitialWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
-        // Set Call API status
-        sessionStorage.setItem("apiCallDone", "true");
-      } catch (error) {
-        console.error("Error fetching initial weather data", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
+  }, [initialLocationKey]); 
 
   // INPUT HANDLE
   // When Input Triggered
@@ -282,15 +243,14 @@ function App() {
   const getForecasts = async (key, loc, country) => {
     setIsLoading(true)
     setIsResultsClicked(true)
-    console.log(initialWeatherLocal)
     try {
       const wResponse = await axios.get(API_W_BY_LOC_KEY(key));
       updateApiCallCount(apiCallCount.current + 1)
-      console.log("success fetch weather");
+      // console.log("success fetch weather");
       setWeather(wResponse.data[0])
       const fResponse = await axios.get(API_F_BY_LOC_KEY(key));
       updateApiCallCount(apiCallCount.current + 1)
-      console.log("success fetch forecasts");
+      // console.log("success fetch forecasts");
       setForecasts(fResponse.data)
       setForecastsLocation(`${loc}, ${country}`)
       // setWeatherIcon(getWeatherIcon(response.data[0].WeatherIcon));
