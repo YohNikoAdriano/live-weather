@@ -1,6 +1,6 @@
 import React, { memo, useState } from "react";
 import { Carousel, IconButton } from "@material-tailwind/react";
-import { dateFormat, getWeatherIcon, renameIconPhrase } from '../helper';
+import { dateFormat, getDayOfWeek, getWeatherIcon, renameIconPhrase, fahrenheitToCelsius } from '../helper';
 
 const ForecastsCarousel = memo(({ forecasts }) => {
   return (
@@ -37,15 +37,19 @@ const ForecastsCarousel = memo(({ forecasts }) => {
       
       {forecasts.map((dailyForecasts, index) => (
         <div className='text-sm text-left w-11/12 mx-auto pb-6 px-6 my-2 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg'>
-          <div className="flex align-items-center justify-between py-3">
-            <div>
-              <p className='text-xs font-normal'>{`Min Temprature: ${Math.round(dailyForecasts?.Temperature?.Minimum?.Value)}°F`}</p>
-              <p className='text-xs font-normal'>{`Max Temprature: ${Math.round(dailyForecasts?.Temperature?.Maximum?.Value)}°F`}</p>
+          <div className="flex items-start justify-between">
+            <div className="inline-block px-3 py-2 bg-gradient-to-r from-sky-800 via-emerald-700 to-emerald-600 rounded-b-lg focus:outline-emerald-400 text-center">
+              <p className="text-xs">{getDayOfWeek(dailyForecasts?.Date)} Forecast</p>
             </div>
-            <p className='text-[.7rem] font-light'>{dateFormat(dailyForecasts?.Date)}</p>
+
+            <div className="text-right mt-3 ml-3">
+              <p className='text-xs mb-3 font-light'>{dateFormat(dailyForecasts?.Date)}</p>
+              <p className='text-[.7rem]/[.7rem] font-normal'>{`Min Temp: ${Math.round(fahrenheitToCelsius(dailyForecasts?.Temperature?.Minimum?.Value))}°C`}</p>
+              <p className='text-[.7rem]/[.7rem] font-normal'>{`Max Temp: ${Math.round(fahrenheitToCelsius(dailyForecasts?.Temperature?.Maximum?.Value))}°C`}</p>
+            </div>
           </div>
 
-          <div className="text-left grid grid-cols-2 gap-4">
+          <div className="text-left grid grid-cols-2 gap-4 mt-3">
             <div className="day">
               <div className="inline-block px-3 py-2 mb-2 bg-gradient-to-r from-sky-800 via-emerald-700 to-emerald-600 rounded-b-lg focus:outline-emerald-400">
                 <p className="text-xs">Day</p>
@@ -53,10 +57,10 @@ const ForecastsCarousel = memo(({ forecasts }) => {
               <div className='text-6xl font-bold my-3'>
                 <i className={dailyForecasts?.Day?.Icon ? `wi ${getWeatherIcon(dailyForecasts?.Day?.Icon)}` : "wi-na"} style={{ fontSize: 'inherit', color: 'orange'}}></i>
               </div>
-              <p className="text-sm font-extrabold mb-1">{renameIconPhrase(dailyForecasts?.Day?.IconPhrase)}</p>
-              <div className="text-[.6rem]/[.6rem] font-light">
-                <p>Precipitation Intensity: <span>{dailyForecasts?.Day?.HasPrecipitation ? dailyForecasts?.Day?.PrecipitationIntensity : "-"}</span></p>
-                <p>Precipitation Type: <span>{dailyForecasts?.Day?.HasPrecipitation ? dailyForecasts?.Day?.PrecipitationType : "-"}</span></p>
+              <p className="text-sm mt-3 font-extrabold mb-1">{renameIconPhrase(dailyForecasts?.Day?.IconPhrase)}</p>
+              <div className="text-[.75rem]/[.75rem] font-light">
+                <p>Precip Intensity: <span className="font-semibold">{dailyForecasts?.Day?.HasPrecipitation ? dailyForecasts?.Day?.PrecipitationIntensity : "-"}</span></p>
+                <p>Precip Type: <span className="font-semibold">{dailyForecasts?.Day?.HasPrecipitation ? dailyForecasts?.Day?.PrecipitationType : "-"}</span></p>
               </div>
             </div>
 
@@ -67,10 +71,10 @@ const ForecastsCarousel = memo(({ forecasts }) => {
               <div className='text-6xl font-bold my-3'>
                 <i className={dailyForecasts?.Night?.Icon ? `wi ${getWeatherIcon(dailyForecasts?.Night?.Icon)}` : "wi-na"} style={{ fontSize: 'inherit', color: 'orange'}}></i>
               </div>
-              <p className="text-sm font-extrabold mb-1">{renameIconPhrase(dailyForecasts?.Night?.IconPhrase)}</p>
-              <div className="text-[.6rem]/[.6rem] font-light">
-                <p>Precipitation Intensity: <span>{dailyForecasts?.Night?.HasPrecipitation ? dailyForecasts?.Night?.PrecipitationIntensity : "-"}</span></p>
-                <p>Precipitation Type: <span>{dailyForecasts?.Night?.HasPrecipitation ? dailyForecasts?.Night?.PrecipitationType : "-"}</span></p>
+              <p className="text-sm mt-3 font-extrabold mb-1">{renameIconPhrase(dailyForecasts?.Night?.IconPhrase)}</p>
+              <div className="text-[.75rem]/[.75rem] font-light">
+                <p>Precip Intensity: <span className="font-semibold">{dailyForecasts?.Night?.HasPrecipitation ? dailyForecasts?.Night?.PrecipitationIntensity : "-"}</span></p>
+                <p>Precip Type: <span className="font-semibold">{dailyForecasts?.Night?.HasPrecipitation ? dailyForecasts?.Night?.PrecipitationType : "-"}</span></p>
               </div>
             </div>
           </div>

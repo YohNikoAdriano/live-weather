@@ -1,5 +1,5 @@
 import React, { memo, useState } from "react";
-import { dateFormat, getWeatherIcon, renameIconPhrase } from '../helper';
+import { dateFormat, getWeatherIcon, fahrenheitToCelsius } from '../helper';
 
 const Weather = memo(({ weatherData, headline, forecastsData, loc }) => {
   return (
@@ -11,9 +11,9 @@ const Weather = memo(({ weatherData, headline, forecastsData, loc }) => {
             <p className="text-xs">Today Forecast</p>
           </div>
 
-          <div className="text-right mt-3 ml-2">
-            <p className='text-[.7rem] font-light'>{dateFormat(headline?.EffectiveDate)}</p>
-            <p className='text-lg/[1rem] font-medium mb-1'>{loc || "No Location :("}</p>
+          <div className="text-right mt-3 ml-3">
+            <p className='text-xs font-light'>{dateFormat(headline?.EffectiveDate)}</p>
+            <p className='text-xl/[1rem] my-3 font-medium mb-1'>{loc || "No Location :("}</p>
           </div>
         </div>
 
@@ -48,8 +48,8 @@ const Weather = memo(({ weatherData, headline, forecastsData, loc }) => {
             <div className="text-end">
               <p className='text-sm font-extrabold mb-1'>{headline?.Text || "No Weather :("}</p>
               <p className='text-xs font-normal'>{`Severity Level: ${headline.Severity}`}</p>
-              <p className='text-xs font-normal'>{`Min Temprature: ${Math.round(forecastsData?.Temperature?.Minimum?.Value)}°F`}</p>
-              <p className='text-xs font-normal'>{`Max Temprature: ${Math.round(forecastsData?.Temperature?.Maximum?.Value)}°F`}</p>
+              <p className='text-xs font-normal'>{`Min Temprature: ${Math.round(fahrenheitToCelsius(forecastsData?.Temperature?.Minimum?.Value))}°C`}</p>
+              <p className='text-xs font-normal'>{`Min Temprature: ${Math.round(fahrenheitToCelsius(forecastsData?.Temperature?.Maximum?.Value))}°C`}</p>
             </div>
           </div>
         </div>

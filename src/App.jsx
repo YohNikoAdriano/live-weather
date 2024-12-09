@@ -274,8 +274,8 @@ function App() {
               <i className={initialWeatherIcon ? `wi ${initialWeatherIcon}` : "wi-na"} style={{ fontSize: 'inherit', lineHeight: '3rem', color: 'orange'}}></i>
             </div>
             <div className='text-end'>
-              <p className='text-[.6rem] font-extralight'>{time.toLocaleTimeString()}</p>
-              <p className='text-lg font-medium'>{city || "No Location :("}</p>
+              <p className='text-xs font-extralight'>{time.toLocaleTimeString()}</p>
+              <p className='text-xl/[1rem] my-3 font-medium'>{city || "No Location :("}</p>
               <p className='text-[0.55rem]/[0.6rem] font-extralight'>{location.lat && location.lon ? `${location.lat}, ${location.lon}` : ''}</p>
               <div className='mt-2 flex justify-end'>
                 <div className='mr-2 text-xs font-medium'>

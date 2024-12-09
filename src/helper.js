@@ -108,6 +108,16 @@ export const getWeatherIcon = (iconInput) => {
   export const dateFormat = (date) => {
     const formattedDate = new Date(date);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return formattedDate.toLocaleDateString('id-ID', options);
+    return formattedDate.toLocaleDateString('en-US', options);
+  }
+
+  export const getDayOfWeek = (date) => {
+    const formattedDate = new Date(date);
+    const options = { weekday: 'long' };
+    return formattedDate.toLocaleDateString('en-US', options);
+  }
+
+  export const fahrenheitToCelsius = (fahrenheit) => {
+    return (fahrenheit - 32) * 5 / 9;
   }
   
