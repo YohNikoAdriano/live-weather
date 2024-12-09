@@ -267,7 +267,7 @@ function App() {
   return (
     <>
       <div className="w-100 h-100 relative">
-        <p>API Calls: {apiCallCount.current}</p>
+        {/* <p>API Calls: {apiCallCount.current}</p> */}
         <div className='user-information text-sm w-11/12 mx-auto p-6 my-6 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg hover:cursor-pointer'>
           <div className='flex items-center justify-between'>
             <div className='w-20 h-20 text-5xl flex items-center justify-center'>
