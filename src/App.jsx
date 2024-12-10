@@ -102,6 +102,14 @@ function App() {
       }
     };
 
+    // Check date to clear local storage
+    const today = new Date().toISOString().split("T")[0];
+    const lastAccessDate = localStorage.getItem("lastAccessDate");
+    if (lastAccessDate !== today) {
+      localStorage.clear();
+      localStorage.setItem("lastAccessDate", today);
+    }
+
     // Get Initial Weather Data from Local Storage 
     const localStorageInitialCity = localStorage.getItem("initialCity")
     const localStorageInitialWeather = JSON.parse(localStorage.getItem("initialWeatherLocal"))
@@ -111,24 +119,24 @@ function App() {
       setInitialWeather(localStorageInitialWeather);
       setInitialWeatherIcon(getWeatherIcon(localStorageInitialWeather.WeatherIcon));
     } else{
-    // Get Location
-    // 1. Get Lat/Long by Navigator Geolocation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log("Location by Lat Long");
-          fetchLocationData(position.coords.latitude, position.coords.longitude);
-        },
-        // 2. Get IP Adress
-        (error) => {
-          console.log("User denied geolocation access! : " + error);
-          console.log("Location by IP");
-          fetchLocationByIP();
-        }
-      );
-    } else {
-      setError("Geolocation is not supported by this browser!");
-    }  
+      // Get Location
+      // 1. Get Lat/Long by Navigator Geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log("Location by Lat Long");
+            fetchLocationData(position.coords.latitude, position.coords.longitude);
+          },
+          // 2. Get IP Adress
+          (error) => {
+            console.log("User denied geolocation access! : " + error);
+            console.log("Location by IP");
+            fetchLocationByIP();
+          }
+        );
+      } else {
+        setError("Geolocation is not supported by this browser!");
+      }  
     }
 
     // Get Time
@@ -268,9 +276,9 @@ function App() {
     <>
       <div className="w-100 h-100 relative">
         {/* <p>API Calls: {apiCallCount.current}</p> */}
-        <div className='user-information text-sm w-11/12 mx-auto p-6 my-6 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg hover:cursor-pointer'>
+        <div className='user-information text-sm w-11/12 sm:w-5/6 md:w-4/6 lg:w-7/12 mx-auto p-6 sm:px-12 md:px-16 my-6 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg'>
           <div className='flex items-center justify-between'>
-            <div className='w-20 h-20 text-5xl flex items-center justify-center'>
+            <div className='w-20 h-20 sm:w-32 sm:h-32 text-5xl sm:text-7xl flex items-center justify-center'>
               <i className={initialWeatherIcon ? `wi ${initialWeatherIcon}` : "wi-na"} style={{ fontSize: 'inherit', lineHeight: '3rem', color: 'orange'}}></i>
             </div>
             <div className='text-end'>
@@ -294,7 +302,7 @@ function App() {
           </h1>
           <h2 className='text-lg font-semibold'>Welcome to the Live Weather Application</h2>
           
-          <div className='my-5 w-3/4 mx-auto text-sm'>
+          <div className='my-5 w-3/4 sm:w-4/6 md:w-3/6 lg:w-2/5 mx-auto text-sm'>
             <input 
               type="text" 
               className={`w-full py-3 px-6 bg-gradient-to-r from-sky-900 via-emerald-800 to-emerald-700 opacity-70 focus:outline-emerald-400 placeholder:text-gray-100 shadow-inner ${autoCompleteResults.length > 0 && !isSearchEntered && !isResultsClicked ? 'rounded-t-xl' : 'rounded-xl'}`} 
@@ -327,7 +335,7 @@ function App() {
       </div>
 
       {citySearchedData.length > 0 && !isResultsClicked && (
-        <div className='grid grid-cols-2 gap-3'>
+        <div className='grid grid-cols-2 gap-4 md:gap-6 lg:gap-10'>
           {citySearchedData.map((item, index) => (
             <CitiesCard key={index} data={item} index={index+1} cardClicked={getForecasts}/>
           ))}

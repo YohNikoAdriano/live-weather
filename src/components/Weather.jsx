@@ -4,11 +4,11 @@ import { dateFormat, getWeatherIcon, fahrenheitToCelsius } from '../helper';
 const Weather = memo(({ weatherData, headline, forecastsData, loc }) => {
   return (
     <>
-      <div className='text-sm text-left w-11/12 mx-auto pb-6 px-6 mt-10 mb-2 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg'>
+      <div className='text-sm text-left w-11/12 sm:w-5/6 md:w-4/6 lg:w-7/12 mx-auto pb-6 px-6 sm:px-12 md:px-16 lg:px-20 mt-10 mb-2 bg-gradient-to-r from-neutral-600 to-transparent rounded-xl shadow-lg'>
 
         <div className="flex items-start justify-between">
-          <div className="inline-block px-3 py-2 bg-gradient-to-r from-sky-800 via-emerald-700 to-emerald-600 rounded-b-lg focus:outline-emerald-400 text-center">
-            <p className="text-xs">Today Forecast</p>
+          <div className="inline-block px-3 md:px-5 py-2 bg-gradient-to-r from-sky-800 via-emerald-700 to-emerald-600 rounded-b-lg focus:outline-emerald-400 text-center">
+            <p className="text-xs md:text-sm">Today Forecast</p>
           </div>
 
           <div className="text-right mt-3 ml-3">
