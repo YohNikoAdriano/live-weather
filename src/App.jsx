@@ -335,7 +335,7 @@ function App() {
       </div>
 
       {citySearchedData.length > 0 && !isResultsClicked && (
-        <div className='grid grid-cols-2 gap-4 md:gap-6 lg:gap-10'>
+        <div className='grid grid-cols-2 gap-4 md:gap-6 lg:gap-10 w-11/12 sm:w-5/6 md:w-4/6 lg:w-7/12 mx-auto'>
           {citySearchedData.map((item, index) => (
             <CitiesCard key={index} data={item} index={index+1} cardClicked={getForecasts}/>
           ))}
