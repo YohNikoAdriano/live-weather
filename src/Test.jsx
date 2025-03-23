@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Weather = () => {
@@ -20,7 +20,7 @@ const Weather = () => {
         setWeatherData(response.data[0]);
       })
       .catch(err => {
-        setError('Failed to fetch weather data');
+        setError('Failed to fetch weather data', err);
       });
   }, [LAT, LON]);
 
